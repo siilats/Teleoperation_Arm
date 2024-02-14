@@ -1,0 +1,12 @@
+Mon Feb 12 13:21:38 2024
+WARNING: mju_openResource: unknown file '~/franka_mujoco/panda.xml'
+
+Mon Feb 12 13:23:41 2024
+WARNING: mju_openResource: unknown file '~/franka_mujoco/world.xml'
+
+Mon Feb 12 13:23:51 2024
+WARNING: mju_openResource: unknown file '~/franka_mujoco/world.xml'
+
+Mon Feb 12 13:27:09 2024
+WARNING: mju_openResource: unknown file 'panda.xml'
+
