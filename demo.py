@@ -29,7 +29,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     start = time.time()
 
-    while viewer.is_running() and time.time() - start < 2:
+    while viewer.is_running() and time.time() - start < 7:
         step_start = time.time()
 
     # mj_step can be replaced with code that also evaluates
@@ -38,10 +38,23 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     # # Pick up changes to the physics state, apply perturbations, update options from GUI.
         viewer.sync()
-        # print(data.qpos[:7])
-        data.ctrl[2] = np.cos(np.pi/4)  
+        print(data.qpos[:7])
+        Kp = 10
+        Kd = 10
 
-        # print(q_list)
+        '''
+        PD control to the base joint to move along a sin(wt) wave where w = pi/2 and t = time.time() - start 
+        '''
+        data.ctrl[0] = Kp * (np.sin(np.pi/2 * time.time() - start) - data.qpos[0]) + Kd * (0 - data.qvel[0])
+
+        '''
+        Keeping other joints almost no control and move as the base joint moves
+        Giving data.ctrl[1:7] = 0 causes the joints to not be actuated 
+        
+        '''
+        data.ctrl[1:7] = Kp * (0 - data.qpos[1:7]) + Kd * (0-0)
+        # data.ctrl[1:7] = 0
+
         time.sleep(2e-5)
 
         pose = data.qpos[:7].copy()
@@ -59,7 +72,7 @@ with open('q.pkl', 'rb') as file:
 # Call load method to deserialze 
     myvar = pickle.load(file) 
 
-    print(myvar[0])
+    # print(myvar[0])
     # print(myvar[len(myvar)-1])
         # Extracting joint values and timestamps
     joint_values = [data[0] for data in myvar]
