@@ -12,6 +12,8 @@ model= mujoco.MjModel.from_xml_path("world.xml")
 data = mujoco.MjData(model)
 q_list = []
 pose = None
+Kp = 10
+Kd = 10
 
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
@@ -32,15 +34,15 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     while viewer.is_running() and time.time() - start < 7:
         step_start = time.time()
 
-    # mj_step can be replaced with code that also evaluates
-    # a policy and applies a control signal before stepping the physics.
-        mujoco.mj_step(model, data)
 
     # # Pick up changes to the physics state, apply perturbations, update options from GUI.
         viewer.sync()
-        print(data.qpos[:7])
-        Kp = 10
-        Kd = 10
+        # print(data.qpos[:7])
+        pose = data.qpos[:7].copy()
+        print(pose)
+
+        q_list.append([pose,time.time()-start])
+        # print(q_list)
 
         '''
         PD control to the base joint to move along a sin(wt) wave where w = pi/2 and t = time.time() - start 
@@ -57,11 +59,10 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
         time.sleep(2e-5)
 
-        pose = data.qpos[:7].copy()
-        # print(pose)
-
-        q_list.append([pose,time.time()-start])
-        # print(q_list)
+        # mj_step can be replaced with code that also evaluates
+        # a policy and applies a control signal before stepping the physics.
+        
+        mujoco.mj_step(model, data)
 
 with open('q.pkl', 'wb') as file:
 
@@ -77,7 +78,7 @@ with open('q.pkl', 'rb') as file:
         # Extracting joint values and timestamps
     joint_values = [data[0] for data in myvar]
     timestamps = [data[1] for data in myvar]
-
+    print(joint_values[0], timestamps[0])
     # Plot each joint value against its corresponding timestamp
     for i in range(len(joint_values[0])):
         joint_values_i = [joints[i] for joints in joint_values]
