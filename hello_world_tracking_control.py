@@ -17,6 +17,29 @@ data = mujoco.MjData(model)
 
 q_track = []
 
+
+dq_max =[]
+ddq_max = []
+
+'''
+Defining maximum lower and upper velocities and accelerations for each joint of the follower arm.
+The velocities and accelerations vary depending on the ramp parameter for eachh joint
+'''
+dq_max_lower_ = np.array([0.8, 0.8, 0.8, 2.5,2.5,2.5])
+dq_max_upper_ = np.array([2,2,2,2,2.5,2.5,2.5])
+
+
+print(dq_max_lower_[0])
+
+
+
+def rampParameter(x, neg_x_asymptote , pos_x_asymptote , shift_along_x , increase_factor):
+
+    ramp = 0.5 * (pos_x_asymptote + neg_x_asymptote -
+        (pos_x_asymptote - neg_x_asymptote) * np.tanh(increase_factor * (x - shift_along_x)))
+    
+    return ramp
+
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
     # Close the viewer automatically after 30 wall-seconds.
@@ -41,7 +64,9 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         joint_values = [data[0] for data in myvar]
         timestamps = [data[1] for data in myvar]
 
-        q_leader = joint_values[0]
+        q_leader_init = joint_values[0]
+
+        q_leader = joint_values
         # print("Leader\t",q_leader)
 
     start = time.time()
@@ -53,24 +78,62 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         q_follower = data.qpos[:7].copy()
         dq_follower = data.qvel[:7].copy()
 
-        print("Leader\t",q_leader)
-        print("Follower\t",q_follower)
+        # print("Leader\t",q_leader_init)
+        # print("Follower\t",q_follower)
 
 
-        kNorm = np.abs(q_leader - q_follower)
+        kNorm = np.abs(q_leader_init - q_follower)
         
-        print("kNorm",kNorm)
+        # print("kNorm",kNorm)
 
-        if np.all(kNorm) < kTolerance:
-            print("ROBOTS ARE ALIGNED")
+        q_target_last_ = q_follower
 
-        else: 
+        '''
+        Determining deviation between each joint of both the arms every timestamp to track errors
+        '''
+        q_deviation = np.abs(q_target_last_ - q_leader[time.time()-start])
+
+        if np.any(kNorm) > kTolerance:
+
             print("ROBOTS ARE NOT ALIGNED\t")
             print("GOING TO ALIGN MODE\t")
 
+            '''
+            PD Control to Align the two robots
+            '''
+            target = q_leader_init
+            while np.all(kNorm) > kTolerance:
+                error = target - q_follower
+
+                print("Error\t",error)
+                
+                tau = Kp * error + Kd * (0 - dq_follower)
+                data.ctrl[:7] = tau
+
+                kNorm = np.abs(target - q_follower)
+                
+                time.sleep(2e-5)
+                mujoco.mj_step(model, data)
+
+                q_follower = data.qpos[:7].copy()
+
+        else: 
+            print("ROBOTS ARE ALIGNED")
+
+            for i in range(7):
+                dq_max[i]= rampParameter(q_deviation[i], dq_max_lower_[i], dq_max_upper_[i],
+                                         velocity_ramp_shift_ ,velocity_ramp_increase_)
+                
+                ddq_max[i] = rampParameter(q_deviation[i], ddq_max_lower_[i], ddq_max_upper_[i],
+                                           velocity_ramp_shift_, velocity_ramp_increase_)
+                
+                 
+
+
+
             
 
-#         error = target - q
+
 #         print("Error \t" , error)
 #         # error_norm = np.linalg.norm(error)
 #     # mj_step can be replaced with code that also evaluates
