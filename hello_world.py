@@ -11,6 +11,7 @@ import pickle
 model= mujoco.MjModel.from_xml_path("world.xml")
 data = mujoco.MjData(model)
 q_list = []
+dq_list = []
 pose = None
 Kp = 10
 Kd = 10
@@ -39,9 +40,11 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         viewer.sync()
         # print(data.qpos[:7])
         pose = data.qpos[:7].copy()
+        vel = data.qvel[:7].copy()
         print(pose)
 
         q_list.append([pose,time.time()-start])
+        dq_list.append([vel,time.time()-start])
         # print(q_list)
 
         '''
@@ -64,11 +67,15 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         
         mujoco.mj_step(model, data)
 
-with open('q.pkl', 'wb') as file:
+with open('q_leader.pkl', 'wb') as file:
 
     pickle.dump(q_list, file)
 
-with open('q.pkl', 'rb') as file: 
+with open('dq_leader.pkl', 'wb') as file:
+
+    pickle.dump(dq_list, file)
+
+with open('q_leader.pkl', 'rb') as file: 
     
 # Call load method to deserialze 
     myvar = pickle.load(file) 
