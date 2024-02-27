@@ -87,13 +87,11 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     viewer.cam.lookat[:] = np.array([0.0, -0.25, 0.824])
     model.opt.gravity[2] =0
 
-    Kp = 10.0
-    Kd = 3.0
     kTolerance = 1e-2
     velocity_ramp_shift_= 0.25 # Given in the teleop_joint_pd_example_controller.h
     velocity_ramp_increase_ = 20 # Given in the teleop_joint_pd_example_controller.h
 
-    follower_stiffness_scaling = 1.0 #
+    follower_stiffness_scaling = 0.2 
 
     dq_target_last_ = [0,0,0,0,0,0,0]
     iter = 0
@@ -123,7 +121,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     start = time.time()
 
-    while viewer.is_running() and time.time() - start < 7:
+    while viewer.is_running() and time.time() - start < 8:
         step_start = time.time()
         viewer.sync()
 
@@ -228,8 +226,6 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
         time.sleep(2e-5)
 
-        
-    
         iter+=1
         print("iter", iter)
         # print(len(dq_max))
