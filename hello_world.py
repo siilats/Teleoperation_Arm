@@ -55,9 +55,9 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         '''
         Keeping other joints almost no control and move as the base joint moves
         Giving data.ctrl[1:7] = 0 causes the joints to not be actuated 
-        
         '''
-        data.ctrl[1:7] = Kp * (0 - data.qpos[1:7]) + Kd * (0-0)
+        # data.ctrl[1:7] = Kp * (0 - data.qpos[1:7]) + Kd * (0-0)
+        data.ctrl[:7] = Kp * (np.sin(np.pi/2 * time.time() - start)- data.qpos[:7]) + Kd * (0-data.qvel[:7])
         # data.ctrl[1:7] = 0
 
         time.sleep(2e-5)

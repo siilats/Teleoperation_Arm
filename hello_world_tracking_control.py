@@ -75,6 +75,29 @@ def saturateAndlimit(x_calc , x_last , x_max, dx_max , del_t):
         x_limited.append(xlimited)
     return x_limited
 
+with open('q_leader.pkl', 'rb') as file: 
+    
+    # Call load method to deserialze 
+    myvar = pickle.load(file) 
+    # print(myvar[0])
+    joint_values = [data[0] for data in myvar]
+    timestamps = [data[1] for data in myvar]
+
+    q_leader_init = joint_values[0]
+
+    q_leader = joint_values
+    # print("Leader\t",q_leader)
+
+with open('dq_leader.pkl', 'rb') as file: 
+    
+# Call load method to deserialze 
+    myvar = pickle.load(file) 
+    # print(myvar[0])
+    jointVel_values = [data[0] for data in myvar]
+    # timestamps = [data[1] for data in myvar]
+
+    dq_leader = jointVel_values
+
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
     # Close the viewer automatically after 30 wall-seconds.
@@ -91,37 +114,15 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     velocity_ramp_shift_= 0.25 # Given in the teleop_joint_pd_example_controller.h
     velocity_ramp_increase_ = 20 # Given in the teleop_joint_pd_example_controller.h
 
-    follower_stiffness_scaling = 0.2 
+    follower_stiffness_scaling = 0.2
 
     dq_target_last_ = [0,0,0,0,0,0,0]
     iter = 0
 
-    with open('q_leader.pkl', 'rb') as file: 
-    
-    # Call load method to deserialze 
-        myvar = pickle.load(file) 
-        # print(myvar[0])
-        joint_values = [data[0] for data in myvar]
-        timestamps = [data[1] for data in myvar]
-
-        q_leader_init = joint_values[0]
-
-        q_leader = joint_values
-        # print("Leader\t",q_leader)
-
-    with open('dq_leader.pkl', 'rb') as file: 
-    
-    # Call load method to deserialze 
-        myvar = pickle.load(file) 
-        # print(myvar[0])
-        jointVel_values = [data[0] for data in myvar]
-        # timestamps = [data[1] for data in myvar]
-
-        dq_leader = jointVel_values
 
     start = time.time()
 
-    while viewer.is_running() and time.time() - start < 8:
+    while viewer.is_running() and time.time() - start < 7:
         step_start = time.time()
         viewer.sync()
 
@@ -256,8 +257,9 @@ with open('q_follower.pkl', 'rb') as file:
     # Plot each joint value against its corresponding timestamp
     for i in range(len(joint_values[0])):
         joint_values_i = [joints[i] for joints in joint_values]
+        # q_leader_i = [qleader[i] for qleader in q_leader ]
         plt.plot(timestamps, joint_values_i, label=f'Joint {i+1}')
-
+        # plt.plot(timestamps, [joint_values_i - q_leader_i], label=f'Joint {i+1}')
     # Adding labels and legend
     plt.xlabel('Timestamp')
     plt.ylabel('Joint Value')
@@ -267,6 +269,35 @@ with open('q_follower.pkl', 'rb') as file:
 
     # Show the plot
     plt.show()
+
+
+    for i in range(len(joint_values[0])):
+        joint_values_i = [joints[i] for joints in joint_values]
+        x = len(joint_values_i) 
+        joint_values_i = np.array(joint_values_i)
+
+        q_leader_i = [qleader[i] for qleader in q_leader ]
+
+        q_leader_i = np.array(q_leader_i[:x])
+        error = np.subtract(joint_values_i , q_leader_i)
+        err_list = error.tolist()
+        plt.plot(timestamps, err_list, label=f'Joint {i+1}')
+        # plt.plot(timestamps, [joint_values_i - q_leader_i], label=f'Joint {i+1}')
+    # Adding labels and legend
+    plt.xlabel('Timestamp')
+    plt.ylabel('Error Value')
+    plt.title('Error Values vs. Timestamp')
+    plt.legend()
+    plt.grid(True)
+
+    # Show the plot
+    plt.show()
+
+
+
+
+
+
 
         # print("Error \t" , error)
 #         # error_norm = np.linalg.norm(error)
