@@ -258,7 +258,7 @@ with open('q_follower.pkl', 'rb') as file:
     for i in range(len(joint_values[0])):
         joint_values_i = [joints[i] for joints in joint_values]
         # q_leader_i = [qleader[i] for qleader in q_leader ]
-        plt.plot(timestamps, joint_values_i, label=f'Joint {i+1}')
+        plt.plot(timestamps, joint_values_i, label=f'Joint {i}')
         # plt.plot(timestamps, [joint_values_i - q_leader_i], label=f'Joint {i+1}')
     # Adding labels and legend
     plt.xlabel('Timestamp')
@@ -281,7 +281,7 @@ with open('q_follower.pkl', 'rb') as file:
         q_leader_i = np.array(q_leader_i[:x])
         error = np.subtract(joint_values_i , q_leader_i)
         err_list = error.tolist()
-        plt.plot(timestamps, err_list, label=f'Joint {i+1}')
+        plt.plot(timestamps, err_list, label=f'Joint {i}')
         # plt.plot(timestamps, [joint_values_i - q_leader_i], label=f'Joint {i+1}')
     # Adding labels and legend
     plt.xlabel('Timestamp')

@@ -13,8 +13,8 @@ data = mujoco.MjData(model)
 q_list = []
 dq_list = []
 pose = None
-Kp = 10
-Kd = 10
+Kp = 90
+Kd = 45
 
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
@@ -39,6 +39,8 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     # # Pick up changes to the physics state, apply perturbations, update options from GUI.
         viewer.sync()
         # print(data.qpos[:7])
+
+        #0 to 7 --> Base to Gripper (7 [Joints]+ 1 [Gripper])
         pose = data.qpos[:7].copy()
         vel = data.qvel[:7].copy()
         print(pose)
@@ -50,14 +52,18 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         '''
         PD control to the base joint to move along a sin(wt) wave where w = pi/2 and t = time.time() - start 
         '''
-        data.ctrl[0] = Kp * (np.sin(np.pi/2 * time.time() - start) - data.qpos[0]) + Kd * (0 - data.qvel[0])
+        data.ctrl[0] = Kp * (-np.sin(np.pi* 2*time.time() - start) - data.qpos[0]) + Kd * (0 - data.qvel[0])
+        data.ctrl[1:4] = 0
+        data.ctrl[5] = Kp * (np.sin(np.pi/4 * time.time() - start) - data.qpos[5]) + Kd * (0 - data.qvel[5])
 
+        # 6 --> End-effector ; 7--> Gripper
+        data.ctrl[6] = Kp * (np.sin(np.pi/2 * time.time() - start) - data.qpos[6]) + Kd * (0 - data.qvel[6])
         '''
         Keeping other joints almost no control and move as the base joint moves
         Giving data.ctrl[1:7] = 0 causes the joints to not be actuated 
         '''
         # data.ctrl[1:7] = Kp * (0 - data.qpos[1:7]) + Kd * (0-0)
-        data.ctrl[:7] = Kp * (np.sin(np.pi/2 * time.time() - start)- data.qpos[:7]) + Kd * (0-data.qvel[:7])
+        # data.ctrl[:7] = Kp * (np.sin(np.pi/2 * time.time() - start)- data.qpos[:7]) + Kd * (0-data.qvel[:7])
         # data.ctrl[1:7] = 0
 
         time.sleep(2e-5)
@@ -89,7 +95,7 @@ with open('q_leader.pkl', 'rb') as file:
     # Plot each joint value against its corresponding timestamp
     for i in range(len(joint_values[0])):
         joint_values_i = [joints[i] for joints in joint_values]
-        plt.plot(timestamps, joint_values_i, label=f'Joint {i+1}')
+        plt.plot(timestamps, joint_values_i, label=f'Joint {i}')
 
     # Adding labels and legend
     plt.xlabel('Timestamp')
