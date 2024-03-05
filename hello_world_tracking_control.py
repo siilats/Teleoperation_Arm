@@ -122,7 +122,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     start = time.time()
 
-    while viewer.is_running() and time.time() - start < 7:
+    while viewer.is_running() and time.time() - start < 20:
         step_start = time.time()
         viewer.sync()
 

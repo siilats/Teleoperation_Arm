@@ -13,8 +13,8 @@ data = mujoco.MjData(model)
 q_list = []
 dq_list = []
 pose = None
-Kp = 90
-Kd = 45
+Kp = 100
+Kd = 10
 
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
@@ -32,7 +32,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     start = time.time()
 
-    while viewer.is_running() and time.time() - start < 7:
+    while viewer.is_running() and time.time() - start < 20:
         step_start = time.time()
 
 
@@ -52,12 +52,14 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         '''
         PD control to the base joint to move along a sin(wt) wave where w = pi/2 and t = time.time() - start 
         '''
-        data.ctrl[0] = Kp * (-np.sin(np.pi* 2*time.time() - start) - data.qpos[0]) + Kd * (0 - data.qvel[0])
-        data.ctrl[1:4] = 0
-        data.ctrl[5] = Kp * (np.sin(np.pi/4 * time.time() - start) - data.qpos[5]) + Kd * (0 - data.qvel[5])
+        data.ctrl[0] = 10 * (np.sin((time.time() - start)) - data.qpos[0]) + 1 * (np.cos(time.time()-start) - data.qvel[0])
 
-        # 6 --> End-effector ; 7--> Gripper
-        data.ctrl[6] = Kp * (np.sin(np.pi/2 * time.time() - start) - data.qpos[6]) + Kd * (0 - data.qvel[6])
+        #In Python, 1:7 means Joint 1,2,3,4,5,6 only
+        data.ctrl[1:7] = 100 * (np.array([-0.78,0,-2.35,0,1.57,0.78])- data.qpos[1:7]) + 10 * (0 - data.qvel[1:7])
+        # data.ctrl[5] = Kp * (np.sin(np.pi/4 * (time.time() - start)) - data.qpos[5]) + Kd * (0 - data.qvel[5])
+
+        # # 6 --> End-effector ; 7--> Gripper
+        # data.ctrl[6] = 10 * (np.sin(np.pi/2 * (time.time() - start)) - data.qpos[6]) + 1 * (np.pi/2* np.cos(np.pi/2*(time.time()-start)) - data.qvel[6])
         '''
         Keeping other joints almost no control and move as the base joint moves
         Giving data.ctrl[1:7] = 0 causes the joints to not be actuated 
