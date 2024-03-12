@@ -75,20 +75,56 @@ def saturateAndlimit(x_calc , x_last , x_max, dx_max , del_t):
         x_limited.append(xlimited)
     return x_limited
 
-with open('q_leader.pkl', 'rb') as file: 
+
+'''
+q_leader file recorded from hello_world.py
+'''
+# with open('q_leader.pkl', 'rb') as file: 
+    
+#     # Call load method to deserialze 
+#     myvar = pickle.load(file) 
+#     # print(myvar[0])
+#     joint_values = [data[0] for data in myvar]
+#     timestamps = [data[1] for data in myvar]
+
+#     q_leader_init = joint_values[0]
+
+#     q_leader = joint_values
+#     # print("Leader\t",q_leader)
+
+'''
+q_inverse_kinematics file recorded from hello_world_inverse_kinematics.py PINK
+'''
+with open('q_inverse_kinematics.pkl', 'rb') as file: 
     
     # Call load method to deserialze 
     myvar = pickle.load(file) 
     # print(myvar[0])
     joint_values = [data[0] for data in myvar]
     timestamps = [data[1] for data in myvar]
-
+    # print("Length of Joint values",len(joint_values))
     q_leader_init = joint_values[0]
 
     q_leader = joint_values
     # print("Leader\t",q_leader)
 
-with open('dq_leader.pkl', 'rb') as file: 
+'''
+dq_leader file recorded from hello_world.py
+'''
+# with open('dq_leader.pkl', 'rb') as file: 
+    
+# # Call load method to deserialze 
+#     myvar = pickle.load(file) 
+#     # print(myvar[0])
+#     jointVel_values = [data[0] for data in myvar]
+#     # timestamps = [data[1] for data in myvar]
+
+#     dq_leader = jointVel_values
+
+'''
+dq_inverse_kinematics file recorded from hello_world_inverse_kinematics.py PINK
+'''
+with open('dq_inverse_kinematics.pkl', 'rb') as file: 
     
 # Call load method to deserialze 
     myvar = pickle.load(file) 
@@ -121,12 +157,16 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
 
     start = time.time()
+    data.qpos[:7] = np.array([-2.3093, -1.5133, -2.4937, -2.7478, -2.48, 0.8521, -2.6895])
 
-    while viewer.is_running() and time.time() - start < 20:
+    # while viewer.is_running() and time.time() - start < 20:
+    while viewer.is_running() and iter < len(joint_values):
         step_start = time.time()
         viewer.sync()
 
         q_follower = data.qpos[:7].copy()
+        # print(q_follower)
+        # break
         dq_follower = data.qvel[:7].copy()
 
         q_track.append([q_follower,time.time()-start])
